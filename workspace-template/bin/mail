@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+// Local stand-in for sending email, used by the Email Jeff demo. Never sends anything:
+// "sent" mail is appended to data/fake-mail.json. It shadows any real `mail` command inside runs.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// The workbench passes WB_DATA_DIR to everything it starts; outside it, fall back to ./.data next to the workspace.
+const root = process.env.WB_WORKSPACE_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const file = process.env.WB_MAIL_FILE ?? join(process.env.WB_DATA_DIR ?? join(root, ".data"), "fake-mail.json");
+const load = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : { outbox: [] });
+const save = (db) => (mkdirSync(dirname(file), { recursive: true }), writeFileSync(file, JSON.stringify(db, null, 2)));
+const flag = (args, name) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
+
+const [cmd, ...args] = process.argv.slice(2);
+const db = load();
+switch (cmd) {
+  case "send": {
+    const to = flag(args, "to");
+    const subjectFile = flag(args, "subject-file");
+    const subject = subjectFile ? readFileSync(subjectFile, "utf8").split("\n")[0].trim() : flag(args, "subject");
+    const bodyFile = flag(args, "body-file");
+    const body = bodyFile ? readFileSync(bodyFile, "utf8") : flag(args, "body") ?? args.join(" ");
+    if (!to || !subject || !body) { console.error("usage: mail send --to ADDRESS (--subject TEXT | --subject-file FILE) (--body TEXT | --body-file FILE)"); process.exit(1); }
+    const msg = { id: db.outbox.length + 1, to, subject, body, sentAt: new Date().toISOString() };
+    db.outbox.push(msg); save(db);
+    console.log(`sent #${msg.id} to ${to}: ${subject} (fake: written to ${file})`);
+    break;
+  }
+  case "outbox":
+    if (!db.outbox.length) console.log("(outbox empty)");
+    for (const m of db.outbox) console.log(`#${m.id}\t${m.sentAt}\t${m.to}\t${m.subject}`);
+    break;
+  case "reset": save({ outbox: [] }); console.log("outbox cleared"); break;
+  default: console.log("mail send --to ADDRESS (--subject TEXT | --subject-file FILE) (--body TEXT | --body-file FILE) | mail outbox | mail reset");
+}

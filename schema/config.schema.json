@@ -1,0 +1,735 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "settings": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "box": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "default": "Workbench",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "publicHooksUrl": {
+          "type": "string",
+          "pattern": "^https?:\\/\\/[^\\s/?#]+(\\/[^\\s?#]*)?$"
+        },
+        "publicAppUrl": {
+          "type": "string",
+          "pattern": "^https?:\\/\\/[^\\s/?#]+(\\/[^\\s?#]*)?$"
+        },
+        "workspaceRemote": {
+          "type": "string"
+        },
+        "defaultModel": {
+          "type": "string"
+        },
+        "sessionRetentionHours": {
+          "default": 72,
+          "type": "number",
+          "minimum": 0
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "skillsDir": {
+          "default": ".claude/skills",
+          "type": "string"
+        },
+        "codeServer": {
+          "default": false,
+          "type": "boolean"
+        },
+        "scheduler": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "mode": {
+              "default": "internal",
+              "type": "string",
+              "enum": [
+                "internal",
+                "external"
+              ]
+            },
+            "secret": {
+              "default": "SCHEDULE_SECRET",
+              "type": "string"
+            }
+          }
+        },
+        "access": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "users": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "minLength": 3
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "member",
+                      "viewer"
+                    ]
+                  }
+                },
+                "required": [
+                  "email",
+                  "role"
+                ]
+              }
+            },
+            "domains": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "defaultRole": {
+              "default": "member",
+              "type": "string",
+              "enum": [
+                "admin",
+                "member",
+                "viewer"
+              ]
+            }
+          }
+        },
+        "limits": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "maxConcurrentRuns": {
+              "default": 4,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "maxRunSessionHours": {
+              "default": 24,
+              "type": "number",
+              "minimum": 1
+            },
+            "diskWarnPercent": {
+              "default": 80,
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "diskStopPercent": {
+              "default": 95,
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "maxTerminals": {
+              "default": 12,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "doors": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "appHosts": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "hooksHosts": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "appAccess": {
+              "default": "public",
+              "type": "string",
+              "enum": [
+                "public",
+                "private",
+                "both"
+              ]
+            },
+            "privateCidrs": {
+              "default": [
+                "127.0.0.1/32",
+                "::1/128"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "auth": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "proxy": {
+              "default": {},
+              "type": "object",
+              "properties": {
+                "emailHeader": {
+                  "default": "X-Forwarded-Email",
+                  "type": "string"
+                },
+                "nameHeader": {
+                  "type": "string"
+                },
+                "secret": {
+                  "default": "PROXY_SECRET",
+                  "type": "string"
+                },
+                "trustedCidrs": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "oidc": {
+              "default": {},
+              "type": "object",
+              "properties": {
+                "issuer": {
+                  "type": "string"
+                },
+                "clientId": {
+                  "type": "string"
+                },
+                "clientSecret": {
+                  "default": "OIDC_CLIENT_SECRET",
+                  "type": "string"
+                },
+                "scopes": {
+                  "default": "openid email profile",
+                  "type": "string"
+                },
+                "sessionHours": {
+                  "default": 168,
+                  "type": "number",
+                  "minimum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "webhook",
+              "generic",
+              "schedule"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^\\/hooks\\/[a-z0-9][a-z0-9/_-]*$"
+          },
+          "verify": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "hmac"
+                  },
+                  "secret": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "header": {
+                    "default": "x-hub-signature-256",
+                    "type": "string"
+                  },
+                  "algorithm": {
+                    "default": "sha256",
+                    "type": "string",
+                    "enum": [
+                      "sha256",
+                      "sha1"
+                    ]
+                  },
+                  "prefix": {
+                    "default": "sha256=",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "secret"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "header"
+                  },
+                  "header": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "secret": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "kind",
+                  "header",
+                  "secret"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "url-token"
+                  },
+                  "secret": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "kind",
+                  "secret"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "none"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            ]
+          },
+          "adapter": {
+            "type": "string",
+            "enum": [
+              "github",
+              "jira"
+            ]
+          },
+          "map": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "summary": {
+                "type": "string"
+              },
+              "payload": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        }
+      }
+    },
+    "groups": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "autonomy": {
+            "default": "ask-first",
+            "type": "string",
+            "enum": [
+              "autonomous",
+              "ask-first",
+              "guarded"
+            ]
+          },
+          "guard": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notify": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "actions": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_-]+$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "style": {
+                  "default": "secondary",
+                  "type": "string",
+                  "enum": [
+                    "primary",
+                    "secondary",
+                    "danger"
+                  ]
+                },
+                "input": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "text",
+                          "number",
+                          "boolean"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "enum": {
+                            "minItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "enum"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "prompt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ]
+            }
+          },
+          "model": {
+            "type": "string"
+          },
+          "allowedTools": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcpServers": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "workdir": {
+            "type": "string"
+          },
+          "webAccess": {
+            "default": true,
+            "type": "boolean"
+          },
+          "addDirs": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parallel": {
+            "default": false,
+            "type": "boolean"
+          },
+          "extraSkillDirs": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pluginDirs": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title"
+        ]
+      }
+    },
+    "rules": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "on": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filter": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "group": {
+            "type": "string"
+          },
+          "mode": {
+            "default": "interactive",
+            "type": "string",
+            "enum": [
+              "interactive",
+              "print"
+            ]
+          },
+          "goal": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "on",
+          "prompt",
+          "group"
+        ]
+      }
+    },
+    "services": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "run": {
+            "type": "object",
+            "properties": {
+              "cmd": {
+                "type": "string"
+              },
+              "args": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "env": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "cmd"
+            ]
+          },
+          "probe": {
+            "type": "object",
+            "properties": {
+              "port": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "port"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      }
+    },
+    "terminals": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,30}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "cwd": {
+            "default": "workspace",
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "layout": {
+            "default": "shell",
+            "type": "string",
+            "enum": [
+              "shell",
+              "services"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    }
+  },
+  "title": "Workbench config.json",
+  "description": "Sources, workflows, rules, services, repos, terminals and settings for one workbench box."
+}

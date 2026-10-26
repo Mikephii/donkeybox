@@ -1,0 +1,74 @@
+#!/usr/bin/env node
+// Acme's stand-in for Jira in the demo. Tickets live in $WB_DATA_DIR/fake-jira.json; nothing leaves the box.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = process.env.WB_WORKSPACE_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const file = process.env.WB_JIRA_FILE ?? join(process.env.WB_DATA_DIR ?? join(root, ".data"), "fake-jira.json");
+const seed = {
+  next: 43,
+  tickets: [
+    {
+      key: "DK-38", summary: "Stock levels on the product page, and an email when stock runs low", type: "Story", status: "To Do", estimate: null, reporter: "kai",
+      description: "Customers keep ordering things we're out of. Show \"only N left\" on the product page,\nand email ops when anything drops below 5.",
+      comments: [],
+    },
+    { key: "DK-39", summary: "Checkout button misaligned on mobile (duplicate)", type: "Bug", status: "To Do", estimate: null, reporter: "kai", comments: [] },
+    { key: "DK-40", summary: "Checkout button misaligned on mobile", type: "Bug", status: "Done", estimate: 1, reporter: "jo", comments: [] },
+    { key: "DK-41", summary: "Order history page", type: "Story", status: "In Progress", estimate: 3, reporter: "sam", comments: [] },
+    {
+      key: "DK-42", summary: "Export orders to CSV and email it weekly", type: "Story", status: "To Do", estimate: null, reporter: "jo",
+      description: "Ops want last week's orders as a CSV in their inbox every Monday at 8am,\nand a button in the admin to download the same file any time.",
+      comments: [],
+    },
+  ],
+};
+const load = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : structuredClone(seed));
+const save = (db) => (mkdirSync(dirname(file), { recursive: true }), writeFileSync(file, JSON.stringify(db, null, 2)));
+const flag = (args, name) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
+const pts = (t) => (t.estimate == null ? "no estimate" : `${t.estimate} pt${t.estimate === 1 ? "" : "s"}`);
+const row = (t) => `${t.key.padEnd(6)} ${t.status.padEnd(12)} ${t.type.padEnd(6)} ${pts(t).padEnd(12)} ${t.summary}`;
+const who = () => (process.env.WB_RUN_ID ? "donkeybox" : (process.env.USER === "workbench" ? "acme-bot" : process.env.USER ?? "you"));
+
+const [cmd, ...args] = process.argv.slice(2);
+const db = load();
+const find = (key) => db.tickets.find((t) => t.key === key) ?? (console.error(`no ticket ${key}`), process.exit(1));
+switch (cmd) {
+  case "list":
+    db.tickets.forEach((t) => console.log(row(t)));
+    break;
+  case "show": {
+    const t = find(args[0]);
+    console.log(`${t.key}  ${t.summary}`);
+    console.log(`${t.type} · ${t.status} · ${pts(t)} · reported by ${t.reporter}`);
+    if (t.description) console.log(`\n${t.description}`);
+    if (t.links?.length) console.log(`\nLinks: ${t.links.join(", ")}`);
+    for (const c of t.comments) console.log(`\n— ${c.by}: ${c.text}`);
+    break;
+  }
+  case "create": {
+    const type = flag(args, "type") ?? "Task";
+    const estimate = flag(args, "estimate");
+    const parent = flag(args, "parent");
+    const description = flag(args, "description"), reporter = flag(args, "reporter");
+    const t = { key: `DK-${db.next++}`, summary: args.join(" "), type, status: "To Do", estimate: estimate ? Number(estimate) : null, reporter: reporter ?? who(), comments: [] };
+    if (description) t.description = description;
+    if (parent) { t.links = [parent]; const p = find(parent); (p.links ??= []).push(t.key); }
+    db.tickets.push(t); save(db); console.log(`created ${t.key}  ${t.summary}${t.estimate != null ? `  (${pts(t)})` : ""}`);
+    break;
+  }
+  case "estimate": { const t = find(args[0]); t.estimate = Number(args[1]); save(db); console.log(`${t.key} estimated at ${pts(t)}`); break; }
+  case "comment": { const t = find(args.shift()); t.comments.push({ by: who(), text: args.join(" ") }); save(db); console.log(`commented on ${t.key}`); break; }
+  case "comments": { const t = find(args[0]); for (const c of t.comments) console.log(`— ${c.by}: ${c.text}\n`); break; }
+  case "update": {
+    const t = find(args.shift());
+    const status = flag(args, "status"), summary = flag(args, "summary");
+    if (status) t.status = status; if (summary) t.summary = summary;
+    save(db); console.log(`updated ${row(t)}`); break;
+  }
+  case "delete": { const key = args[0]; find(key); db.tickets = db.tickets.filter((t) => t.key !== key); save(db); console.log(`deleted ${key}`); break; }
+  case "reset": save(structuredClone(seed)); console.log("reset to seed"); break;
+  default:
+    console.log("jira list | show KEY | create SUMMARY [--type T] [--estimate N] [--parent KEY] [--description D] [--reporter R] | estimate KEY N | comment KEY TEXT | comments KEY | update KEY [--status S] [--summary S] | delete KEY | reset");
+}

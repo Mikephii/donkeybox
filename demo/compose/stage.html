@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- The compositor's stage: one 1600x1000 frame of a piece, drawn for any time t by window.render(t).
+     demo/compose.mjs loads it with the piece's layers, steps t a frame at a time and screenshots it. -->
+<style>
+@font-face { font-family: "Inter Variable"; src: url(fonts/inter-latin-wght-normal.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "JetBrains Mono Variable"; src: url(fonts/jetbrains-mono-latin-wght-normal.woff2) format("woff2"); font-weight: 100 800; }
+:root {
+  --background: oklch(0.985 0 0); --card: oklch(1 0 0); --foreground: oklch(0.145 0 0); --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.505 0 0); --border: oklch(0.895 0 0); --sunken: oklch(0.955 0 0);
+  --orange-fill: oklch(0.57 0.143 48); --orange-ink: oklch(0.4 0.108 48); --orange-soft: oklch(0.94 0.033 48);
+  --shadow: 0 1px 2px oklch(0 0 0 / 6%), 0 12px 32px -8px oklch(0 0 0 / 18%);
+  --term-bg: oklch(0.18 0.004 100); --term-fg: oklch(0.93 0.004 100); --night: oklch(0.2 0.03 265);
+}
+.dark {
+  --background: oklch(0.196 0.004 100); --card: oklch(0.217 0.004 100); --foreground: oklch(0.952 0.004 100); --muted: oklch(0.272 0.004 100);
+  --muted-foreground: oklch(0.72 0.004 100); --border: oklch(1 0 0 / 12%); --sunken: oklch(0.17 0.004 100);
+  --orange-fill: oklch(0.74 0.143 48); --orange-ink: oklch(0.82 0.11 48); --orange-soft: oklch(0.32 0.087 48);
+  --shadow: 0 1px 2px oklch(0 0 0 / 30%), 0 16px 40px -8px oklch(0 0 0 / 55%);
+  --term-bg: oklch(0.15 0.004 100);
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1600px; height: 1000px; overflow: hidden; background: var(--background); }
+body { font-family: "Inter Variable", system-ui, sans-serif; color: var(--foreground); -webkit-font-smoothing: antialiased; font-feature-settings: "cv11", "ss01"; }
+.mono { font-family: "JetBrains Mono Variable", ui-monospace, monospace; }
+#stage { position: absolute; inset: 0; overflow: hidden; }
+.layer { position: absolute; will-change: transform, opacity; }
+.footage { overflow: hidden; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow); background: var(--card); }
+.footage.flat { border-radius: 0; border: 0; box-shadow: none; }
+.footage img { position: absolute; left: 0; top: 0; width: 1600px; height: 1000px; transform-origin: 0 0; }
+.label { position: absolute; left: 14px; top: 12px; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+.dot { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; color: white; font-size: 15px; font-weight: 700; flex: none; }
+.bubble { display: flex; gap: 16px; align-items: flex-start; max-width: 1040px; }
+.bubble .who { font-size: 19px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 2px; display: flex; gap: 10px; align-items: baseline; letter-spacing: 0; }
+.bubble .who time { font-family: "JetBrains Mono Variable", monospace; font-size: 18px; font-weight: 500; }
+.bubble .msg { background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 22px; border-top-left-radius: 6px; padding: 16px 22px; font-size: 30px; line-height: 1.3; letter-spacing: -0.015em; }
+.bubble[style*="row-reverse"] .msg { border-top-left-radius: 22px; border-top-right-radius: 6px; }
+.bubble[style*="row-reverse"] .who { justify-content: flex-end; }
+.bubble .msg code { font-family: "JetBrains Mono Variable", monospace; font-size: 27px; background: var(--sunken); border-radius: 8px; padding: 1px 8px; }
+.bubble .av { width: 52px; height: 52px; border-radius: 999px; display: grid; place-items: center; color: white; font-weight: 700; font-size: 22px; flex: none; margin-top: 6px; box-shadow: var(--shadow); }
+.bubble .av svg { width: 28px; height: 28px; }
+.line { font-weight: 700; letter-spacing: -0.035em; line-height: 1.02; text-wrap: balance; }
+.chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px 10px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); font-size: 24px; font-weight: 600; }
+.term { background: var(--term-bg); color: var(--term-fg); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid oklch(1 0 0 / 10%); }
+.term .bar { height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 18px; background: oklch(1 0 0 / 6%); }
+.term .bar i { width: 13px; height: 13px; border-radius: 99px; background: oklch(1 0 0 / 22%); display: block; }
+.term .bar span { margin-left: 12px; font-size: 17px; color: oklch(1 0 0 / 55%); }
+.term pre { font-family: "JetBrains Mono Variable", monospace; font-size: 25px; line-height: 1.5; padding: 22px 26px; white-space: pre-wrap; }
+.term .p { color: oklch(0.78 0.12 150); } .term .d { color: oklch(1 0 0 / 50%); } .term .c { display: inline-block; width: 13px; height: 28px; background: var(--term-fg); vertical-align: -5px; }
+.rail .row { display: grid; grid-template-columns: 84px 1fr; gap: 14px; padding: 9px 0; font-size: 21px; line-height: 1.25; align-items: baseline; }
+.rail .row time { font-family: "JetBrains Mono Variable", monospace; font-size: 19px; color: var(--muted-foreground); }
+.rail .row.past { color: var(--muted-foreground); }
+.rail .row.future { opacity: 0.32; }
+.rail .row.now { font-weight: 650; }
+.rail .row.now time { color: var(--orange-ink); font-weight: 650; }
+.ring { position: absolute; inset: -4px; border-radius: 20px; border: 4px solid var(--orange-fill); pointer-events: none; }
+svg.flow path { stroke-dasharray: 10 12; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="stage.js"></script>
+</body>
+</html>

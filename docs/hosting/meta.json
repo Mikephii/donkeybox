@@ -1,0 +1,4 @@
+{
+  "title": "Hosting",
+  "pages": ["index", "gcp-iap", "aws", "self-hosted-proxy", "fly", "own-computer", "behind-your-own-app", "updating"]
+}

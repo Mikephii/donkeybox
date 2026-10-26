@@ -1,0 +1,77 @@
+# Typecheck, unit tests, upgrade tests against every release that may upgrade to this one, the
+# Playwright suite against a running box, and the docs build. Runs on every push and pull request.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Setup (Zellij, Caddy, dependencies, Chromium)
+        run: pnpm run setup
+      - run: pnpm typecheck
+      - name: Earlier releases for the upgrade tests
+        # Every published release from MIN_UPGRADE_FROM up to this version, tarball and manifest. A
+        # repository with no releases yet has none, and the upgrade tests skip with a note.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MIN=$(node -e 'import("./packages/app/src/release.ts").then(m=>console.log(m.MIN_UPGRADE_FROM))')
+          CUR=$(node -p 'require("./package.json").version')
+          mkdir -p dist
+          for tag in $(gh release list --limit 50 --json tagName --jq '.[].tagName' 2>/dev/null || true); do
+            v="${tag#v}"
+            node -e 'import("./packages/app/src/release.ts").then(m=>process.exit(m.compareVersions(process.argv[1],process.argv[2])>=0&&m.compareVersions(process.argv[1],process.argv[3])<0?0:1))' "$v" "$MIN" "$CUR" || continue
+            gh release download "$tag" --dir dist --pattern "workbench-$v.tar.gz" --pattern "workbench-$v.release.json" --clobber
+          done
+          ls -la dist
+      - run: pnpm test
+      - name: Start a box for the Playwright suite
+        run: |
+          pnpm start > box.log 2>&1 &
+          for i in $(seq 1 90); do curl -fsS http://localhost:8080/api/health >/dev/null && break; sleep 2; done
+          curl -fsS http://localhost:8080/api/health
+      - run: pnpm test:e2e
+      - if: failure()
+        run: tail -200 box.log
+
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/docs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: apps/docs/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: apps/docs/build/client
+          retention-days: 7

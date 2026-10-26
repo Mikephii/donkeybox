@@ -1,0 +1,26 @@
+{
+  "enabledMcpjsonServers": [
+    "workbench"
+  ],
+  "enableAllProjectMcpServers": true,
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(jira:*)",
+      "Bash(wb:*)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Write(//tmp/**)",
+      "Read",
+      "mcp__workbench",
+      "mcp__atlassian"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

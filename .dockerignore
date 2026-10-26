@@ -1,0 +1,14 @@
+**/node_modules
+data
+workspace
+.tools
+.env
+**/dist
+**/test-results
+**/playwright-report
+deploy/gcp/.terraform
+*.log
+apps
+.github
+.git
+demo

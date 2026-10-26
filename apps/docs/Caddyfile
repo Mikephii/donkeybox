@@ -1,0 +1,23 @@
+# The docs site, for anyone who wants to host it: the prerendered site from `pnpm build`
+# (build/client), nothing dynamic. Built into an image by the Dockerfile next to this file.
+{
+	admin off
+	auto_https off
+}
+:8080 {
+	root * /srv
+	encode zstd gzip
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+	header /api/search Content-Type "application/json"
+	header /llms.mdx/* Content-Type "text/markdown; charset=utf-8"
+	header /llms*.txt Content-Type "text/plain; charset=utf-8"
+	respond /healthz 200
+	# /hosting/fly -> /hosting/fly/index.html.
+	try_files {path} {path}/index.html
+	file_server
+	# Anything else is a 404 that serves the app shell, which renders Not Found in the docs layout.
+	handle_errors 404 {
+		rewrite * /__spa-fallback.html
+		file_server
+	}
+}

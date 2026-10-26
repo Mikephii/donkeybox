@@ -1,0 +1,54 @@
+#!/bin/bash
+# Runs on every boot of the Container-Optimized OS VM. Idempotent against a populated data disk:
+# formats the disk only when it is blank, mounts it, and (re)starts the workbench container.
+set -euo pipefail
+DEV=/dev/disk/by-id/google-workbench-data
+MNT=/var/lib/workbench
+META=http://metadata.google.internal/computeMetadata/v1
+
+mkdir -p "$MNT"
+if ! blkid "$DEV" >/dev/null 2>&1; then
+  echo "workbench: formatting the new data disk"
+  mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard "$DEV"
+fi
+mountpoint -q "$MNT" || mount -o discard,defaults "$DEV" "$MNT"
+chown 1000:1000 "$MNT"
+
+# The IAP audience comes from project metadata, written by Terraform once the backend exists.
+AUDIENCE=""
+for i in $(seq 1 60); do
+  AUDIENCE=$(curl -sf -H "Metadata-Flavor: Google" "$META/project/attributes/${audience_key}" || true)
+  [ -n "$AUDIENCE" ] && break
+  sleep 10
+done
+[ -n "$AUDIENCE" ] || { echo "workbench: no IAP audience in project metadata (${audience_key})"; exit 1; }
+
+ENVDIR=/var/lib/workbench-env
+mkdir -p "$ENVDIR"
+cat > "$ENVDIR/env" <<'ENVEOF'
+%{ for k, v in env ~}
+${k}=${v}
+%{ endfor ~}
+ENVEOF
+echo "IAP_AUDIENCE=$AUDIENCE" >> "$ENVDIR/env"
+chmod 600 "$ENVDIR/env"
+
+# Artifact Registry and gcr.io need the VM's credentials; other registries are public or use extra_env.
+case "${registry}" in
+  *.pkg.dev|gcr.io|*.gcr.io) HOME=/var/lib/workbench-env docker-credential-gcr configure-docker --registries="${registry}" ;;
+esac
+
+export HOME=/var/lib/workbench-env
+docker pull "${image}"
+if [ "$(docker inspect -f '{{.Config.Image}}' workbench 2>/dev/null || true)" != "${image}" ]; then
+  docker rm -f workbench >/dev/null 2>&1 || true
+  docker run -d --name workbench --restart=always \
+    -v "$MNT":/data \
+    -p 8080:8080 -p 8081:8081 -p 8002:8002 \
+    --env-file "$ENVDIR/env" \
+    --log-driver=gcplogs \
+    "${image}"
+else
+  docker start workbench >/dev/null
+fi
+echo "workbench: started ${image}"

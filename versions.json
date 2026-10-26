@@ -1,0 +1,8 @@
+{
+  "$comment": "Pinned versions of the programs the workbench installs. setup.sh, `wb tools install` and the image read this file; bump a version here and nowhere else.",
+  "node": "24",
+  "zellij": "0.45.1",
+  "caddy": "2.11.7",
+  "codeServer": "4.96.4",
+  "claudeCode": "2.1.292"
+}

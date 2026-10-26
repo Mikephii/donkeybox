@@ -1,0 +1,574 @@
+/* ===========================================================================
+   DonkeyBox design tokens: the box and the docs site both read this one file.
+
+   The system is Amiral's (its colour playground, by the same author): oklch
+   tokens, a neutral stack with five elevation rungs, two eleven-step hue ramps,
+   fixed status fills with text-safe inks, eight categorical slots and a pastel
+   tag palette. Every text pair clears WCAG AA and every mark 3:1 on the card;
+   packages/app/test/tokens.test.ts measures them. Do not change a value without
+   running it.
+
+   One DonkeyBox choice: ORANGE is the brand ramp (the mark's colour on the
+   site), so it leads, and TEAL is the counterpoint. The playground offers this
+   swap as its "brand ramp" knob; the ramps themselves are unchanged.
+
+   Chrome is NEUTRAL. Orange appears only in the focus ring, text selection,
+   inline links, the lit cell of a meter, the sequential scale and, on the
+   marketing site only, eyebrows and list marks. Buttons, tabs, toggles and the
+   active nav row are grey. See the donkeybox-ui skill.
+
+   Consumers import this after Tailwind:
+     @import "tailwindcss";
+     @import "./tokens.css";
+   and turn dark mode on with the `dark` class on <html>. Either theme can be
+   forced on a subtree with the `dark` or `light` class (the /design page
+   shows both side by side); `dark:` utilities stop at a `.light` subtree.
+   =========================================================================== */
+
+@custom-variant dark (&:is(.dark *):not(:is(.dark .light *)));
+
+@theme inline {
+  /* Two voices. Inter is the interface and reading voice; JetBrains Mono is
+     the DATA voice: numbers, ids, timestamps, durations, paths, code, commands
+     and badge labels. Both are self-hosted (@fontsource-variable), never a CDN:
+     a box may have no internet. */
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  /* Categorical slots: assigned in fixed order, never cycled. */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+
+  /* Sequential: continuous magnitude only, never categories. */
+  --color-chart-seq-1: var(--chart-seq-1);
+  --color-chart-seq-2: var(--chart-seq-2);
+  --color-chart-seq-3: var(--chart-seq-3);
+  --color-chart-seq-4: var(--chart-seq-4);
+  --color-chart-seq-5: var(--chart-seq-5);
+  --color-chart-seq-6: var(--chart-seq-6);
+  --color-chart-seq-7: var(--chart-seq-7);
+
+  /* Reserved status roles. A FILL (dot, bar, chip ground); text takes -ink; a
+     notice or row ground takes -subtle. Never colour alone: every status
+     ships an icon or a label beside it. */
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-serious: var(--status-serious);
+  --color-status-critical: var(--status-critical);
+  --color-status-info: var(--status-info);
+  --color-status-good-ink: var(--status-good-ink);
+  --color-status-warning-ink: var(--status-warning-ink);
+  --color-status-serious-ink: var(--status-serious-ink);
+  --color-status-critical-ink: var(--status-critical-ink);
+  --color-status-info-ink: var(--status-info-ink);
+  --color-status-good-subtle: var(--status-good-subtle);
+  --color-status-warning-subtle: var(--status-warning-subtle);
+  --color-status-serious-subtle: var(--status-serious-subtle);
+  --color-status-critical-subtle: var(--status-critical-subtle);
+  --color-status-info-subtle: var(--status-info-subtle);
+
+  /* The two ramps. These REPLACE Tailwind's own teal and orange, so
+     `bg-orange-500` is a system colour, not a stray palette class. Prefer the
+     role utilities (`bg-orange-soft`, `text-teal-ink`): a role re-maps per
+     theme, a step does not. */
+  --color-teal-50: var(--teal-50);
+  --color-teal-100: var(--teal-100);
+  --color-teal-200: var(--teal-200);
+  --color-teal-300: var(--teal-300);
+  --color-teal-400: var(--teal-400);
+  --color-teal-500: var(--teal-500);
+  --color-teal-600: var(--teal-600);
+  --color-teal-700: var(--teal-700);
+  --color-teal-800: var(--teal-800);
+  --color-teal-900: var(--teal-900);
+  --color-teal-950: var(--teal-950);
+  --color-teal-ground: var(--teal-ground);
+  --color-teal-soft: var(--teal-soft);
+  --color-teal-border: var(--teal-border);
+  --color-teal-fill: var(--teal-fill);
+  --color-teal-fill-hover: var(--teal-fill-hover);
+  --color-teal-ink: var(--teal-ink);
+  --color-teal-fill-fg: var(--teal-fill-fg);
+  --color-orange-50: var(--orange-50);
+  --color-orange-100: var(--orange-100);
+  --color-orange-200: var(--orange-200);
+  --color-orange-300: var(--orange-300);
+  --color-orange-400: var(--orange-400);
+  --color-orange-500: var(--orange-500);
+  --color-orange-600: var(--orange-600);
+  --color-orange-700: var(--orange-700);
+  --color-orange-800: var(--orange-800);
+  --color-orange-900: var(--orange-900);
+  --color-orange-950: var(--orange-950);
+  --color-orange-ground: var(--orange-ground);
+  --color-orange-soft: var(--orange-soft);
+  --color-orange-border: var(--orange-border);
+  --color-orange-fill: var(--orange-fill);
+  --color-orange-fill-hover: var(--orange-fill-hover);
+  --color-orange-ink: var(--orange-ink);
+  --color-orange-fill-fg: var(--orange-fill-fg);
+
+  /* A pair of series: lead (orange, the brand) and counterpoint (teal). */
+  --color-series-lead: var(--series-lead);
+  --color-series-counter: var(--series-counter);
+
+  /* Tags: a pale ground and an eased ink per hue, through <Badge tone>. */
+  --color-tag-blue-bg: var(--tag-blue-bg);
+  --color-tag-blue-fg: var(--tag-blue-fg);
+  --color-tag-orange-bg: var(--tag-orange-bg);
+  --color-tag-orange-fg: var(--tag-orange-fg);
+  --color-tag-teal-bg: var(--tag-teal-bg);
+  --color-tag-teal-fg: var(--tag-teal-fg);
+  --color-tag-amber-bg: var(--tag-amber-bg);
+  --color-tag-amber-fg: var(--tag-amber-fg);
+  --color-tag-pink-bg: var(--tag-pink-bg);
+  --color-tag-pink-fg: var(--tag-pink-fg);
+  --color-tag-green-bg: var(--tag-green-bg);
+  --color-tag-green-fg: var(--tag-green-fg);
+  --color-tag-violet-bg: var(--tag-violet-bg);
+  --color-tag-violet-fg: var(--tag-violet-fg);
+  --color-tag-red-bg: var(--tag-red-bg);
+  --color-tag-red-fg: var(--tag-red-fg);
+  --color-tag-neutral-bg: var(--tag-neutral-bg);
+  --color-tag-neutral-fg: var(--tag-neutral-fg);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-serious: var(--serious);
+  --color-serious-foreground: var(--serious-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* Elevation: sunken < background < card < popover < overlay. */
+  --color-sunken: var(--sunken);
+  --color-overlay: var(--overlay);
+  --color-scrim: var(--scrim);
+  --color-link: var(--link);
+  --color-selection: var(--selection);
+  /* The quiet lines of the marketing grid and the big background mark. */
+  --color-grid: var(--grid);
+  --color-mark-ghost: var(--mark-ghost);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* The two ramps, identical in both themes. */
+:root {
+  --teal-50: oklch(0.975 0.027 185);
+  --teal-100: oklch(0.94 0.048 185);
+  --teal-200: oklch(0.885 0.083 185);
+  --teal-300: oklch(0.82 0.117 185);
+  --teal-400: oklch(0.74 0.13 185);
+  --teal-500: oklch(0.66 0.116 185);
+  --teal-600: oklch(0.57 0.101 185);
+  --teal-700: oklch(0.48 0.085 185);
+  --teal-800: oklch(0.4 0.071 185);
+  --teal-900: oklch(0.32 0.057 185);
+  --teal-950: oklch(0.26 0.046 185);
+
+  --orange-50: oklch(0.975 0.013 48);
+  --orange-100: oklch(0.94 0.033 48);
+  --orange-200: oklch(0.885 0.067 48);
+  --orange-300: oklch(0.82 0.11 48);
+  --orange-400: oklch(0.74 0.143 48);
+  --orange-500: oklch(0.66 0.15 48);
+  --orange-600: oklch(0.57 0.143 48);
+  --orange-700: oklch(0.48 0.128 48);
+  --orange-800: oklch(0.4 0.108 48);
+  --orange-900: oklch(0.32 0.087 48);
+  --orange-950: oklch(0.26 0.068 48);
+}
+
+:root,
+.light {
+  /* Surfaces, low to high. A component takes the rung it sits on, never the
+     one that happens to look right. */
+  --sunken: oklch(0.965 0 0); /* 0 · wells, code, tracks, tab lists, the canvas */
+  --background: oklch(0.985 0 0); /* 1 · the plane */
+  --card: oklch(1 0 0); /* 2 · cards and canvas windows */
+  --popover: oklch(1 0 0); /* 3 · menus, tooltips, pickers */
+  --overlay: oklch(1 0 0); /* 4 · dialog, sheet */
+  --scrim: oklch(0 0 0 / 40%); /* behind 4 */
+
+  --foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  /* 5.6:1 on the ground: secondary text must still be easy to read. */
+  --muted-foreground: oklch(0.505 0 0);
+  /* The pressed toggle and the menu cursor, one step below muted. */
+  --accent: oklch(0.935 0 0);
+  --accent-foreground: oklch(0.145 0 0);
+  /* Inputs take a step more than borders: an input's edge is its affordance. */
+  --border: oklch(0.895 0 0);
+  --input: oklch(0.87 0 0);
+
+  /* Ramp roles, light: the pale end carries grounds, 600 to 800 fills and ink. */
+  --teal-ground: var(--teal-50);
+  --teal-soft: var(--teal-100);
+  --teal-border: var(--teal-200);
+  --teal-fill: var(--teal-600);
+  --teal-fill-hover: var(--teal-700);
+  --teal-ink: var(--teal-800);
+  --teal-fill-fg: oklch(0.145 0 0);
+  --orange-ground: var(--orange-50);
+  --orange-soft: var(--orange-100);
+  --orange-border: var(--orange-200);
+  --orange-fill: var(--orange-600);
+  --orange-fill-hover: var(--orange-700);
+  --orange-ink: var(--orange-800);
+  --orange-fill-fg: oklch(0.985 0 0);
+
+  /* THE brand colour: the orange fill. Retuning DonkeyBox's identity is the
+     orange ramp, not this line. */
+  --brand: var(--orange-fill);
+  --brand-foreground: var(--orange-fill-fg);
+  --ring: var(--brand);
+  --link: var(--orange-700);
+  --selection: oklch(0.885 0.067 48 / 60%);
+  --radius: 0.625rem;
+
+  --series-lead: var(--orange-fill);
+  --series-counter: var(--teal-fill);
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  /* The active nav row: a step deeper than muted, no hue. */
+  --sidebar-accent: oklch(0.945 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand);
+
+  /* Categorical: blue orange teal amber pink green violet red. Orange and
+     teal sit on the ramp hues so a series and its ramp read as one colour. */
+  --chart-1: oklch(0.575 0.163 255.5);
+  --chart-2: oklch(0.671 0.175 48);
+  --chart-3: oklch(0.669 0.118 185);
+  --chart-4: oklch(0.764 0.161 75.1);
+  --chart-5: oklch(0.716 0.141 357.4);
+  --chart-6: oklch(0.529 0.18 142.5);
+  --chart-7: oklch(0.433 0.167 283.6);
+  --chart-8: oklch(0.623 0.191 24.9);
+
+  /* Sequential: the brand ramp, 200 to 800. */
+  --chart-seq-1: var(--orange-200);
+  --chart-seq-2: var(--orange-300);
+  --chart-seq-3: var(--orange-400);
+  --chart-seq-4: var(--orange-500);
+  --chart-seq-5: var(--orange-600);
+  --chart-seq-6: var(--orange-700);
+  --chart-seq-7: var(--orange-800);
+
+  /* Status, light: ink is text-safe on the card, subtle is a ground. */
+  --status-good-ink: oklch(0.5 0.17 142.6);
+  --status-good-subtle: oklch(0.955 0.035 142.6);
+  --status-warning-ink: oklch(0.5 0.104 78.5);
+  --status-warning-subtle: oklch(0.955 0.035 78.5);
+  --status-serious-ink: oklch(0.5 0.12 41.6);
+  --status-serious-subtle: oklch(0.955 0.024 41.6);
+  --status-critical-ink: oklch(0.5 0.158 25.2);
+  --status-critical-subtle: oklch(0.955 0.022 25.2);
+  --status-info-ink: oklch(0.5 0.088 185);
+  --status-info-subtle: oklch(0.955 0.035 185);
+
+  /* Tags: the eight chart hues, pastel. The hue comes from the data (a
+     hash of the key), never from a domain concept. */
+  --tag-blue-bg: oklch(0.955 0.022 255.5);
+  --tag-blue-fg: oklch(0.46 0.118 255.5);
+  --tag-orange-bg: oklch(0.955 0.025 48);
+  --tag-orange-fg: oklch(0.46 0.118 48);
+  --tag-teal-bg: oklch(0.955 0.036 185);
+  --tag-teal-fg: oklch(0.46 0.081 185);
+  --tag-amber-bg: oklch(0.955 0.036 75.1);
+  --tag-amber-fg: oklch(0.46 0.097 75.1);
+  --tag-pink-bg: oklch(0.955 0.025 357.4);
+  --tag-pink-fg: oklch(0.46 0.118 357.4);
+  --tag-green-bg: oklch(0.955 0.036 142.5);
+  --tag-green-fg: oklch(0.46 0.118 142.5);
+  --tag-violet-bg: oklch(0.955 0.022 283.6);
+  --tag-violet-fg: oklch(0.46 0.118 283.6);
+  --tag-red-bg: oklch(0.955 0.022 24.9);
+  --tag-red-fg: oklch(0.46 0.118 24.9);
+  --tag-neutral-bg: oklch(0.955 0 0);
+  --tag-neutral-fg: oklch(0.38 0 0);
+
+  /* Signature channels. A meter's lit cell takes the brand (non-text, 3:1);
+     its unlit cells are the scale, so they stay visible. */
+  --signature-pixel-on: var(--orange-600);
+  --signature-pixel-off: oklch(0.88 0 0);
+  --signature-blink-min: 0.12;
+  --signature-blink-period: 2000ms;
+
+  /* Marketing only: the backdrop grid and the big ghosted mark. */
+  --grid: oklch(0.145 0 0 / 6%);
+  --mark-ghost: oklch(0.145 0 0 / 4%);
+}
+
+/* Status fills are FIXED: identical in both themes, so a colour never means
+   one thing in light and another in dark. Foregrounds on a fill are chosen by
+   measured contrast. Info is not reserved: it is the counterpoint hue (teal),
+   for a neutral notice; the brand hue would sit beside serious. */
+:root,
+.dark {
+  --status-good: oklch(0.621 0.207 142.6);
+  --status-warning: oklch(0.811 0.164 78.5);
+  --status-serious: oklch(0.717 0.141 41.6);
+  --status-critical: oklch(0.575 0.186 25.2);
+  --status-info: oklch(0.6 0.106 185);
+
+  --success: var(--status-good);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: var(--status-warning);
+  --warning-foreground: oklch(0.145 0 0);
+  --serious: var(--status-serious);
+  --serious-foreground: oklch(0.145 0 0);
+  --destructive: var(--status-critical);
+  --destructive-foreground: oklch(0.985 0 0);
+}
+
+/* Dark is re-stepped, not inverted. The neutral stack is warmed very slightly
+   (chroma 0.004 at hue 100) so it reads as ink rather than switched-off
+   pixels, and each elevation rung is a lift in lightness: dark mode has no
+   shadows to lean on. */
+.dark {
+  --sunken: oklch(0.17 0.004 100);
+  --background: oklch(0.196 0.004 100);
+  --card: oklch(0.217 0.004 100);
+  --popover: oklch(0.243 0.004 100);
+  --overlay: oklch(0.262 0.004 100);
+  --scrim: oklch(0 0 0 / 60%);
+
+  --foreground: oklch(0.952 0.004 100);
+  --card-foreground: oklch(0.952 0.004 100);
+  --popover-foreground: oklch(0.952 0.004 100);
+  --primary: oklch(0.952 0.004 100);
+  --primary-foreground: oklch(0.217 0.004 100);
+  --secondary: oklch(0.272 0.004 100);
+  --secondary-foreground: oklch(0.952 0.004 100);
+  --muted: oklch(0.272 0.004 100);
+  --muted-foreground: oklch(0.72 0.004 100);
+  --accent: oklch(0.31 0.004 100);
+  --accent-foreground: oklch(0.952 0.004 100);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 20%);
+
+  /* Ramp roles, dark: the deep end carries grounds, 200 to 400 fills and ink. */
+  --teal-ground: var(--teal-950);
+  --teal-soft: var(--teal-900);
+  --teal-border: var(--teal-800);
+  --teal-fill: var(--teal-400);
+  --teal-fill-hover: var(--teal-300);
+  --teal-ink: var(--teal-200);
+  --teal-fill-fg: oklch(0.145 0.004 100);
+  --orange-ground: var(--orange-950);
+  --orange-soft: var(--orange-900);
+  --orange-border: var(--orange-800);
+  --orange-fill: var(--orange-400);
+  --orange-fill-hover: var(--orange-300);
+  --orange-ink: var(--orange-200);
+  --orange-fill-fg: oklch(0.145 0.004 100);
+
+  --brand: var(--orange-fill);
+  --brand-foreground: var(--orange-fill-fg);
+  --ring: var(--brand);
+  --link: var(--orange-300);
+  --selection: oklch(0.66 0.15 48 / 35%);
+
+  --series-lead: var(--orange-fill);
+  --series-counter: var(--teal-fill);
+
+  --sidebar: oklch(0.217 0.004 100);
+  --sidebar-foreground: oklch(0.952 0.004 100);
+  --sidebar-primary: oklch(0.952 0.004 100);
+  --sidebar-primary-foreground: oklch(0.217 0.004 100);
+  --sidebar-accent: oklch(0.29 0.004 100);
+  --sidebar-accent-foreground: oklch(0.952 0.004 100);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand);
+
+  --chart-1: oklch(0.622 0.161 255.5);
+  --chart-2: oklch(0.622 0.169 48);
+  --chart-3: oklch(0.74 0.13 185);
+  --chart-4: oklch(0.67 0.141 75.1);
+  --chart-5: oklch(0.622 0.171 357.4);
+  --chart-6: oklch(0.529 0.18 142.5);
+  --chart-7: oklch(0.67 0.145 283.6);
+  --chart-8: oklch(0.669 0.159 24.9);
+
+  --status-good-ink: oklch(0.78 0.176 142.6);
+  --status-good-subtle: oklch(0.28 0.045 142.6);
+  --status-warning-ink: oklch(0.78 0.139 78.5);
+  --status-warning-subtle: oklch(0.28 0.045 78.5);
+  --status-serious-ink: oklch(0.78 0.12 41.6);
+  --status-serious-subtle: oklch(0.28 0.045 41.6);
+  --status-critical-ink: oklch(0.78 0.128 25.2);
+  --status-critical-subtle: oklch(0.28 0.045 25.2);
+  --status-info-ink: oklch(0.78 0.119 185);
+  --status-info-subtle: oklch(0.28 0.045 185);
+
+  --tag-blue-bg: oklch(0.285 0.036 255.5);
+  --tag-blue-fg: oklch(0.84 0.081 255.5);
+  --tag-orange-bg: oklch(0.285 0.036 48);
+  --tag-orange-fg: oklch(0.84 0.096 48);
+  --tag-teal-bg: oklch(0.285 0.036 185);
+  --tag-teal-fg: oklch(0.84 0.098 185);
+  --tag-amber-bg: oklch(0.285 0.036 75.1);
+  --tag-amber-fg: oklch(0.84 0.098 75.1);
+  --tag-pink-bg: oklch(0.285 0.036 357.4);
+  --tag-pink-fg: oklch(0.84 0.098 357.4);
+  --tag-green-bg: oklch(0.285 0.036 142.5);
+  --tag-green-fg: oklch(0.84 0.098 142.5);
+  --tag-violet-bg: oklch(0.285 0.036 283.6);
+  --tag-violet-fg: oklch(0.84 0.082 283.6);
+  --tag-red-bg: oklch(0.285 0.036 24.9);
+  --tag-red-fg: oklch(0.84 0.088 24.9);
+  --tag-neutral-bg: oklch(0.269 0.004 100);
+  --tag-neutral-fg: oklch(0.78 0.004 100);
+
+  --signature-pixel-on: var(--orange-400);
+  --signature-pixel-off: oklch(0.36 0.004 100);
+
+  --grid: oklch(1 0 0 / 7%);
+  --mark-ghost: oklch(1 0 0 / 5%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+  .light {
+    color-scheme: light;
+  }
+  /* Text selection is one of the few places the brand appears. */
+  ::selection {
+    background: var(--selection);
+  }
+  /* Code is typed, so it shows the characters to type: no ligatures turning
+     "->" or "-<" into arrows. */
+  code,
+  kbd,
+  samp,
+  pre,
+  .font-mono {
+    font-variant-ligatures: none;
+  }
+  /* Numbers are data: tabular wherever they line up. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Tailwind 4's preflight dropped the pointer from buttons and shadcn does
+     not restore it. Keyed off the ARIA roles the Radix primitives set. */
+  button:not(:disabled),
+  summary,
+  label[for],
+  a[href],
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([aria-disabled="true"]),
+  [role="menuitemcheckbox"]:not([aria-disabled="true"]),
+  [role="menuitemradio"]:not([aria-disabled="true"]),
+  [role="option"]:not([aria-disabled="true"]),
+  [role="radio"]:not([aria-disabled="true"]),
+  [role="checkbox"]:not([aria-disabled="true"]),
+  [role="switch"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
+}
+
+/* PixelSpinner's trail: one keyframe shared by the eight perimeter cells, each
+   offset by a negative delay. The 37.5 to 37.6% jump snaps rather than fades,
+   so the trail steps like LCD pixels. */
+@keyframes signature-spinner-snake {
+  0%,
+  37.5% {
+    background: var(--spinner-bright, var(--color-foreground));
+  }
+  37.6%,
+  100% {
+    background: var(--signature-pixel-off);
+  }
+}
+
+/* LiveDot's blink: a square that dims and returns, never vanishes. */
+@keyframes signature-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--signature-blink-min);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="signature-spinner-snake"] {
+    animation: none !important;
+    background: var(--signature-pixel-off);
+  }
+  [class*="signature-blink"] {
+    animation: none !important;
+  }
+}

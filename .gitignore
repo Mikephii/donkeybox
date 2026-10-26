@@ -1,0 +1,16 @@
+node_modules
+data/
+dist/
+.env
+test-results/
+playwright-report/
+.tools/
+workspace/
+
+# Demo footage (gigabytes of frames and clips); demo/.gitignore says the same.
+demo/out/
+apps/docs/build/
+.DS_Store
+
+# The demo box's template workspace is a fixture, not a local workspace.
+!demo/workspace/

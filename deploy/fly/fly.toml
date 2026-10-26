@@ -1,0 +1,45 @@
+# The workbench on one Fly Machine with a volume. Self-hosting on Fly uses the box's own OIDC sign-in.
+#   fly launch --no-deploy --copy-config --name your-workbench
+#   fly volumes create workbench_data --size 20 --region syd
+#   fly secrets set OIDC_CLIENT_SECRET=... 
+#   fly deploy
+app = "your-workbench"
+primary_region = "syd"
+
+[build]
+  image = "ghcr.io/mikephii/donkeybox:0.5.0"
+
+[env]
+  AUTH_MODE = "oidc"
+  WB_SEED_PUBLIC_APP_URL = "https://your-workbench.fly.dev"
+  WB_SEED_PUBLIC_HOOKS_URL = "https://your-workbench.fly.dev"
+  WB_BOOTSTRAP_ADMIN = "you@example.com"
+  # The management API (for `wb update`) on Fly's private network only: reach it with `fly proxy 8002`.
+  # Set its token with `fly secrets set WB_MANAGEMENT_TOKEN=...`. No [[services]] block exposes 8002.
+  WB_MANAGEMENT_HOST = "fly-local-6pn"
+  # Issuer and client id are settings; the client secret comes from `fly secrets` (the env fallback).
+  WB_SEED_SETTINGS = '{"auth":{"oidc":{"issuer":"https://accounts.google.com","clientId":"your-client-id.apps.googleusercontent.com"}},"access":{"domains":["example.com"]}}'
+
+[[mounts]]
+  source = "workbench_data"
+  destination = "/data"
+  initial_size = "20gb"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Keep the box up while people work; with the external scheduler it may stop when idle instead.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "60s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "performance-2x"
+  memory = "8gb"

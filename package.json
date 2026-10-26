@@ -1,0 +1,27 @@
+{
+  "name": "workbench",
+  "version": "0.5.0",
+  "private": true,
+  "description": "DonkeyBox: a shared box for running Claude Code agents as a team.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "start": "node --env-file-if-exists=.env packages/app/src/supervisor.ts",
+    "dev": "node --env-file-if-exists=.env packages/app/src/supervisor.ts",
+    "migrate-workspace": "node packages/app/src/migrate-workspace.ts",
+    "build": "pnpm --filter @wb/app build",
+    "test": "pnpm --filter @wb/app test",
+    "test:e2e": "pnpm --filter @wb/app test:e2e",
+    "typecheck": "pnpm -r typecheck",
+    "schema": "node packages/app/src/schema.ts",
+    "notices": "node scripts/third-party-notices.ts",
+    "release": "bash scripts/release.sh",
+    "docs:dev": "pnpm --dir apps/docs install && pnpm --dir apps/docs dev",
+    "docs:build": "pnpm --dir apps/docs install --frozen-lockfile && pnpm --dir apps/docs build"
+  }
+}

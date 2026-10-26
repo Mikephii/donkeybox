@@ -1,0 +1,86 @@
+# The workbench on any Linux host, with oauth2-proxy as the door (proxy mode).
+#   cp .env.example .env   # fill it in
+#   docker compose up -d                    # door on 127.0.0.1:4180, hooks on :8081; put your own TLS in front
+#   docker compose --profile tls up -d      # or let the bundled Caddy get certificates for both domains
+# The app itself is never published: only oauth2-proxy (signed-in people) and the hooks door
+# (webhooks only) can reach it. The app trusts oauth2-proxy's email header because the request
+# comes from oauth2-proxy's fixed address on this private network.
+name: workbench
+
+services:
+  workbench:
+    image: ${WORKBENCH_IMAGE:?set WORKBENCH_IMAGE in .env}
+    restart: unless-stopped
+    volumes:
+      - workbench-data:/data
+    environment:
+      AUTH_MODE: proxy
+      WB_HOOKS_DOOR_PORT: "8081"
+      WB_BOOTSTRAP_ADMIN: ${BOOTSTRAP_ADMIN:-}
+      WB_SEED_PUBLIC_APP_URL: ${APP_URL:?set APP_URL in .env}
+      WB_SEED_PUBLIC_HOOKS_URL: ${HOOKS_URL:?set HOOKS_URL in .env}
+      # Only oauth2-proxy's address may assert who someone is.
+      WB_SEED_SETTINGS: '{"auth":{"proxy":{"emailHeader":"X-Forwarded-Email","nameHeader":"X-Forwarded-Preferred-Username","trustedCidrs":["172.31.250.10/32"]}}}'
+      WB_MANAGEMENT_TOKEN: ${MANAGEMENT_TOKEN:-}
+      # The management API (for `wb update`) listens in the container and is published on the
+      # host's loopback only.
+      WB_MANAGEMENT_HOST: 0.0.0.0
+    expose:
+      - "8080"
+    ports:
+      - "${HOOKS_BIND:-0.0.0.0}:${HOOKS_PORT:-8081}:8081"
+      - "127.0.0.1:${MANAGEMENT_PORT:-8002}:8002"
+    networks:
+      door:
+        ipv4_address: 172.31.250.2
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.1
+    restart: unless-stopped
+    depends_on: [workbench]
+    environment:
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${OIDC_ISSUER:?set OIDC_ISSUER in .env}
+      OAUTH2_PROXY_CLIENT_ID: ${OIDC_CLIENT_ID:?set OIDC_CLIENT_ID in .env}
+      OAUTH2_PROXY_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set OIDC_CLIENT_SECRET in .env}
+      OAUTH2_PROXY_COOKIE_SECRET: ${COOKIE_SECRET:?set COOKIE_SECRET in .env (openssl rand -base64 32 | head -c 32)}
+      OAUTH2_PROXY_COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      OAUTH2_PROXY_REDIRECT_URL: ${APP_URL}/oauth2/callback
+      # Who may sign in at all; the workbench's own list (Settings › People) then decides roles.
+      OAUTH2_PROXY_EMAIL_DOMAINS: ${ALLOWED_EMAIL_DOMAINS:-*}
+      OAUTH2_PROXY_UPSTREAMS: http://workbench:8080
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
+      OAUTH2_PROXY_PASS_USER_HEADERS: "true"
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      OAUTH2_PROXY_SCOPE: openid email profile
+    ports:
+      - "${DOOR_BIND:-127.0.0.1}:${DOOR_PORT:-4180}:4180"
+    networks:
+      door:
+        ipv4_address: 172.31.250.10
+
+  # Optional: TLS for both domains with automatic certificates (needs public DNS and ports 80/443).
+  edge:
+    profiles: [tls]
+    image: caddy:2.11.7
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-app.invalid}
+      HOOKS_DOMAIN: ${HOOKS_DOMAIN:-hooks.invalid}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile.edge:/etc/caddy/Caddyfile:ro
+      - edge-data:/data
+    networks:
+      door: {}
+
+volumes:
+  workbench-data:
+  edge-data:
+
+networks:
+  door:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24

@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+// Local stand-in for Jira used by the demo workflow. Stores tickets in data/fake-jira.json.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// The workbench passes WB_DATA_DIR to everything it starts; outside it, fall back to ./.data next to the workspace.
+const root = process.env.WB_WORKSPACE_DIR ?? resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const file = process.env.WB_JIRA_FILE ?? join(process.env.WB_DATA_DIR ?? join(root, ".data"), "fake-jira.json");
+const seed = { next: 4, tickets: [
+  { key: "DEMO-1", summary: "Checkout button misaligned on mobile", type: "Bug", status: "To Do" },
+  { key: "DEMO-2", summary: "Checkout button misaligned on mobile (duplicate)", type: "Bug", status: "To Do" },
+  { key: "DEMO-3", summary: "Add order history page", type: "Story", status: "In Progress" },
+] };
+const load = () => (existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : structuredClone(seed));
+const save = (db) => (mkdirSync(dirname(file), { recursive: true }), writeFileSync(file, JSON.stringify(db, null, 2)));
+const flag = (args, name) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
+const fmt = (t) => `${t.key}\t${t.status.padEnd(12)}\t${t.type.padEnd(6)}\t${t.summary}`;
+
+const [cmd, ...args] = process.argv.slice(2);
+const db = load();
+const find = (key) => db.tickets.find((t) => t.key === key) ?? (console.error(`no ticket ${key}`), process.exit(1));
+switch (cmd) {
+  case "list": db.tickets.forEach((t) => console.log(fmt(t))); if (!db.tickets.length) console.log("(no tickets)"); break;
+  case "show": console.log(JSON.stringify(find(args[0]), null, 2)); break;
+  case "create": {
+    const type = flag(args, "type") ?? "Task";
+    const t = { key: `DEMO-${db.next++}`, summary: args.join(" "), type, status: "To Do" };
+    db.tickets.push(t); save(db); console.log(`created ${t.key}`); break;
+  }
+  case "update": {
+    const t = find(args.shift());
+    const status = flag(args, "status"), summary = flag(args, "summary");
+    if (status) t.status = status; if (summary) t.summary = summary;
+    save(db); console.log(`updated ${fmt(t)}`); break;
+  }
+  case "delete": {
+    const key = args[0]; find(key);
+    db.tickets = db.tickets.filter((t) => t.key !== key); save(db); console.log(`deleted ${key}`); break;
+  }
+  case "reset": save(structuredClone(seed)); console.log("reset to seed"); break;
+  default: console.log("jira list | show KEY | create SUMMARY [--type T] | update KEY [--status S] [--summary S] | delete KEY | reset");
+}

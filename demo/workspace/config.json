@@ -1,0 +1,172 @@
+{
+  "$schema": "./.workbench/config.schema.json",
+  "settings": {
+    "box": {
+      "name": "Acme"
+    },
+    "codeServer": true,
+    "access": {
+      "users": [
+        {
+          "email": "alice@acme.dev",
+          "role": "admin"
+        }
+      ],
+      "domains": [
+        "acme.dev"
+      ],
+      "defaultRole": "member"
+    },
+    "limits": {
+      "diskWarnPercent": 99,
+      "diskStopPercent": 100
+    },
+    "auth": {
+      "proxy": {
+        "emailHeader": "X-Forwarded-Email",
+        "secret": "PROXY_SECRET"
+      }
+    }
+  },
+  "sources": {
+    "github": {
+      "title": "GitHub",
+      "path": "/hooks/github",
+      "verify": {
+        "kind": "hmac",
+        "secret": "GITHUB_WEBHOOK_SECRET"
+      },
+      "adapter": "github"
+    },
+    "jira": {
+      "title": "Jira",
+      "path": "/hooks/jira",
+      "verify": {
+        "kind": "url-token",
+        "secret": "JIRA_HOOK_SECRET"
+      },
+      "adapter": "jira"
+    },
+    "nightly": {
+      "title": "Nightly",
+      "schedule": "0 2 * * *",
+      "type": "schedule.nightly"
+    }
+  },
+  "groups": {
+    "estimates": {
+      "title": "Estimates",
+      "description": "Story points on new tickets. A split goes to the Inbox; the answer starts the next run.",
+      "skill": "ticket-estimate",
+      "autonomy": "ask-first",
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(jira:*)",
+        "Bash(wb:*)",
+        "Write(/tmp/**)"
+      ],
+      "actions": [
+        {
+          "id": "approve",
+          "label": "Approve",
+          "style": "primary",
+          "prompt": "Approved by {{actor}}: {{request.title}} Go ahead with the split."
+        },
+        {
+          "id": "changes",
+          "label": "Needs changes",
+          "input": {
+            "note": "text"
+          },
+          "prompt": "{{actor}} asked for changes to {{request.title}} {{input.note}}"
+        },
+        {
+          "id": "reject",
+          "label": "Reject",
+          "style": "danger",
+          "prompt": "Rejected by {{actor}}: {{request.title}} Estimate the ticket as it is."
+        }
+      ]
+    },
+    "tickets": {
+      "title": "Tickets",
+      "description": "Triage and clean-up. Deletes need a person.",
+      "skill": "jira-tickets",
+      "autonomy": "guarded",
+      "guard": [
+        "Bash(jira delete*)",
+        "Bash(*&& jira delete*)",
+        "Bash(*; jira delete*)"
+      ],
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(jira:*)"
+      ]
+    },
+    "housekeeping": {
+      "title": "Housekeeping",
+      "description": "The nightly tidy-up. Runs without asking.",
+      "skill": "housekeeping",
+      "autonomy": "autonomous",
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(jira:*)",
+        "Bash(git:*)",
+        "Bash(date:*)",
+        "Edit",
+        "Write"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "id": "estimate-new-tickets",
+      "on": "jira.issue.created",
+      "prompt": "/ticket-estimate {{payload.key}}",
+      "title": "Estimate {{payload.key}}",
+      "group": "estimates",
+      "mode": "print"
+    },
+    {
+      "id": "nightly",
+      "on": "schedule.nightly",
+      "prompt": "/housekeeping nightly",
+      "title": "Nightly housekeeping",
+      "group": "housekeeping",
+      "mode": "print"
+    }
+  ],
+  "services": [
+    {
+      "id": "shop-web",
+      "title": "shop-web :3000",
+      "probe": {
+        "port": 3000
+      },
+      "run": {
+        "cmd": "node",
+        "args": [
+          "server.js"
+        ],
+        "cwd": "/data/home/shop",
+        "env": {
+          "PORT": "3000"
+        }
+      }
+    }
+  ],
+  "terminals": [
+    {
+      "name": "shell",
+      "title": "Shell",
+      "description": "A shell in the workspace.",
+      "cwd": "workspace"
+    },
+    {
+      "name": "services",
+      "title": "Services",
+      "description": "One tab per service tailing its log.",
+      "layout": "services"
+    }
+  ]
+}

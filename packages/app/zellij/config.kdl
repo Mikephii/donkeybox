@@ -1,0 +1,18 @@
+// Workbench Zellij config, shared by the VM and local dev.
+// Every zellij process the workbench starts gets this via ZELLIJ_CONFIG_FILE.
+web_server_ip "127.0.0.1"
+web_server_port 8082
+web_sharing "on"
+enforce_https_for_localhost false
+support_kitty_graphics_protocol false
+show_startup_tips false
+show_release_notes false
+session_serialization true
+pane_frames true
+theme_dark "default"
+theme_light "dayfox"
+web_client {
+    font "ui-monospace, SFMono-Regular, Menlo, monospace"
+    base_url "/term"
+    cursor_blink true
+}

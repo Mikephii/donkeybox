@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "workbench": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${WB_PRODUCT_DIR}/packages/mcp/src/server.ts"],
+      "env": { "WB_ADMIN": "1" }
+    }
+  }
+}

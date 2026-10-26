@@ -1,0 +1,244 @@
+{
+  "$schema": "./.workbench/config.schema.json",
+  "settings": {
+    "box": {
+      "name": "Workbench"
+    },
+    "access": {
+      "users": [],
+      "domains": [],
+      "defaultRole": "member"
+    }
+  },
+  "sources": {
+    "github": {
+      "title": "GitHub",
+      "path": "/hooks/github",
+      "verify": {
+        "kind": "hmac",
+        "secret": "GITHUB_WEBHOOK_SECRET"
+      },
+      "adapter": "github"
+    },
+    "jira": {
+      "title": "Jira",
+      "path": "/hooks/jira",
+      "verify": {
+        "kind": "url-token",
+        "secret": "JIRA_HOOK_SECRET"
+      },
+      "adapter": "jira"
+    },
+    "deploy-finished": {
+      "title": "Deploy finished (CI)",
+      "path": "/hooks/deploy",
+      "verify": {
+        "kind": "header",
+        "header": "X-Hook-Secret",
+        "secret": "DEPLOY_HOOK_SECRET"
+      },
+      "map": {
+        "type": "deploy.finished",
+        "summary": "Deployed {{payload.sha}} to {{payload.env}}",
+        "payload": {
+          "env": "$.environment",
+          "sha": "$.commit"
+        }
+      }
+    },
+    "nightly": {
+      "title": "Nightly",
+      "schedule": "0 2 * * *",
+      "type": "schedule.nightly"
+    }
+  },
+  "groups": {
+    "jira-tickets": {
+      "title": "Jira tickets",
+      "description": "Create, update and delete tickets. Deletes need a human.",
+      "skill": "jira-tickets",
+      "autonomy": "guarded",
+      "guard": [
+        "Bash(jira delete*)",
+        "Bash(*&& jira delete*)",
+        "Bash(*; jira delete*)"
+      ],
+      "notify": [
+        "dev@localhost"
+      ],
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(jira:*)"
+      ],
+      "actions": [
+        {
+          "id": "approve",
+          "label": "Approve",
+          "style": "primary",
+          "prompt": "/jira-tickets approved {{request.id}}: go ahead with \"{{request.title}}\"."
+        },
+        {
+          "id": "changes",
+          "label": "Needs changes",
+          "input": {
+            "note": "text"
+          },
+          "prompt": "/jira-tickets changes {{request.id}}: revise \"{{request.title}}\". Feedback: {{input.note}}"
+        },
+        {
+          "id": "reject",
+          "label": "Reject",
+          "style": "danger",
+          "prompt": "/jira-tickets rejected {{request.id}}: drop \"{{request.title}}\" and stop."
+        }
+      ]
+    },
+    "scoping": {
+      "title": "Scoping",
+      "description": "Turn an idea into a scope and tickets, with sign-off before anything is created.",
+      "skill": "scoping",
+      "autonomy": "ask-first",
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(jira:*)"
+      ],
+      "actions": [
+        {
+          "id": "approve",
+          "label": "Approve scope",
+          "style": "primary",
+          "prompt": "Scope approved. Create the tickets."
+        },
+        {
+          "id": "changes",
+          "label": "Needs changes",
+          "input": {
+            "note": "text"
+          },
+          "prompt": "Revise the scope: {{input.note}}"
+        },
+        {
+          "id": "reject",
+          "label": "Reject",
+          "style": "danger",
+          "prompt": "Scope rejected. Stop."
+        }
+      ]
+    },
+    "housekeeping": {
+      "title": "Housekeeping",
+      "description": "Routine follow-ups that just happen.",
+      "skill": "housekeeping",
+      "autonomy": "autonomous",
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(date:*)",
+        "Bash(wc:*)",
+        "Bash(echo:*)",
+        "Bash(tail:*)"
+      ]
+    },
+    "email-jeff": {
+      "title": "Email Jeff",
+      "description": "Drafts emails to Jeff; nothing is sent without a click.",
+      "skill": "email-jeff",
+      "autonomy": "ask-first",
+      "model": "haiku",
+      "allowedTools": [
+        "Bash(mail:*)"
+      ],
+      "actions": [
+        {
+          "id": "send",
+          "label": "Send",
+          "style": "primary",
+          "prompt": "/email-jeff send {{request.id}}"
+        },
+        {
+          "id": "change",
+          "label": "Change it",
+          "style": "secondary",
+          "input": {
+            "note": "text"
+          },
+          "prompt": "/email-jeff revise {{request.id}}: {{input.note}}"
+        },
+        {
+          "id": "discard",
+          "label": "Discard",
+          "style": "danger",
+          "prompt": "/email-jeff discard {{request.id}}"
+        }
+      ]
+    }
+  },
+  "rules": [
+    {
+      "id": "post-merge",
+      "on": "github.pull_request.merged",
+      "prompt": "/housekeeping post-merge {{payload.repo}} #{{payload.number}} \"{{payload.title}}\" by {{payload.author}}",
+      "title": "Post-merge: PR #{{payload.number}} {{payload.title}}",
+      "group": "housekeeping"
+    },
+    {
+      "id": "deploy-note",
+      "on": "deploy.finished",
+      "prompt": "/housekeeping deploy {{payload.env}} {{payload.sha}}",
+      "title": "Deploy note: {{payload.env}}",
+      "group": "housekeeping",
+      "mode": "print"
+    },
+    {
+      "id": "jira-triage",
+      "on": "jira.issue.created",
+      "prompt": "/jira-tickets triage {{payload.key}}",
+      "title": "Triage {{payload.key}}",
+      "group": "jira-tickets"
+    },
+    {
+      "id": "goal-demo",
+      "on": "demo.goal-loop",
+      "prompt": "/housekeeping count",
+      "title": "Goal loop: count to 3",
+      "group": "housekeeping",
+      "goal": "test \"$(grep -c . goal.txt 2>/dev/null)\" -ge 3"
+    },
+    {
+      "id": "nightly",
+      "on": "schedule.nightly",
+      "prompt": "/housekeeping nightly",
+      "title": "Nightly housekeeping",
+      "group": "housekeeping",
+      "mode": "print"
+    }
+  ],
+  "services": [
+    {
+      "id": "demo-web",
+      "title": "Demo web server :3333",
+      "probe": {
+        "port": 3333
+      },
+      "run": {
+        "cmd": "node",
+        "args": [
+          "bin/demo-server.ts"
+        ]
+      }
+    }
+  ],
+  "terminals": [
+    {
+      "name": "shell",
+      "title": "Shell",
+      "description": "A shell in the workspace. Start Claude Code here with: claude",
+      "cwd": "workspace"
+    },
+    {
+      "name": "services",
+      "title": "Services",
+      "description": "One tab per service tailing its log, and a ctl tab to restart them.",
+      "layout": "services"
+    }
+  ]
+}

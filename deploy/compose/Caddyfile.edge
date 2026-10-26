@@ -1,0 +1,15 @@
+# TLS in front of the two doors (docker compose --profile tls). Certificates come from Let's Encrypt.
+{$APP_DOMAIN} {
+	reverse_proxy oauth2-proxy:4180
+}
+
+{$HOOKS_DOMAIN} {
+	@hook {
+		method POST
+		path /hooks/*
+	}
+	handle @hook {
+		reverse_proxy workbench:8081
+	}
+	respond 404
+}

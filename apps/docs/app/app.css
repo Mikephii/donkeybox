@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+/* DonkeyBox's design tokens, shared with the box (the donkeybox-ui skill). */
+@import '../../../packages/app/web/src/tokens.css';
+
+/* Fumadocs' colours, onto the tokens. Its own palette is defined per theme, so the mapping is
+   restated for `.dark` (and for the sidebar, which Fumadocs tints by id). The values stay
+   var()s, so each resolves to the token of the theme in force. */
+:root,
+.dark,
+.dark #nd-sidebar {
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-popover: var(--popover);
+  --color-fd-popover-foreground: var(--popover-foreground);
+  --color-fd-card: var(--card);
+  --color-fd-card-foreground: var(--card-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-primary: var(--primary);
+  --color-fd-primary-foreground: var(--primary-foreground);
+  --color-fd-secondary: var(--secondary);
+  --color-fd-secondary-foreground: var(--secondary-foreground);
+  --color-fd-accent: var(--accent);
+  --color-fd-accent-foreground: var(--accent-foreground);
+  --color-fd-ring: var(--ring);
+  --color-fd-overlay: var(--scrim);
+  --color-fd-info: var(--status-info);
+  --color-fd-warning: var(--status-warning);
+  --color-fd-error: var(--status-critical);
+  --color-fd-success: var(--status-good);
+  --color-fd-idea: var(--brand);
+}
+
+/* Inline links in prose take the link token: one of the few places the brand appears. */
+.prose a:not([data-card]) {
+  color: var(--link);
+  text-decoration-color: color-mix(in oklab, var(--link) 40%, transparent);
+}
+.prose :where(code):not(:where(pre *)) {
+  background: var(--sunken);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
