@@ -1,6 +1,10 @@
-# DonkeyBox
+<p align="center">
+  <img src="brand/logo.svg" alt="DonkeyBox logo" width="120">
+</p>
 
-A shared box for running Claude Code agents as a team.
+<h1 align="center">DonkeyBox</h1>
+
+<p align="center">A shared box for running Claude Code agents as a team.</p>
 
 DonkeyBox (the workbench) is a web app that runs coding agents on one machine and gives a team one
 place to watch them, answer their questions and decide what they may do alone. Agents are Claude Code
