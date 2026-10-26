@@ -15,7 +15,11 @@ previews and an editor.
 
 ## Demo
 
-<!-- DEMO VIDEO: drag demo/out/light/m1-day-light.mp4 here in the GitHub editor -->
+
+
+https://github.com/user-attachments/assets/514db5e6-445c-41bb-a92f-b195873b495a
+
+
 
 The clips are recorded from a real box running the real image, with a scripted stand-in for the model
 (`demo/model/`) so every take comes out the same. [demo/README.md](demo/README.md) shows how to
